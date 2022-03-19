@@ -6,18 +6,16 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"net/http"
+	"net/url"
 	"os"
 	"strings"
-	"sync"
+
 	"time"
+
+	tcps "test.com/fuzz/tcp"
 )
 
-var White = "\033[1;37m\033[0m"
-var Red = "\033[31m"
-
-var wg sync.WaitGroup
-var testMutex sync.Mutex
+//var testMutex sync.Mutex
 
 // type Ayarlar struct {
 
@@ -43,55 +41,44 @@ type Wordlist struct {
 	fuzzInurl string
 }
 
-// func (w *Wordlist) readFile(path string) error {
-// 	var file *os.File
-// 	var err error
+func welcome() {
 
-// 	file, err = os.Open(path)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	defer file.Close()
-// 	var data [][]byte
+	fmt.Printf("#############" + tcps.Red + " Welcome to the Fuzzer" + tcps.White + " #############\n")
+	fmt.Printf("# " + tcps.Red + "Available Options 	" + tcps.White + "		        #\n")
+	fmt.Printf("#" + tcps.Red + " -dir : Directory of wordlists      " + tcps.White + "           #\n")
+	fmt.Printf("#" + tcps.Red + " -w : Wordlist              " + tcps.White + "                   #\n")
+	fmt.Printf("#" + tcps.Red + " -url : Target URL       " + tcps.White + "                      #\n")
+	//fmt.Printf("#" + Red + " -github : Wordlist from Github  " + White + "              #\n")
+	fmt.Printf("#" + tcps.Red + " -help : Help                   " + tcps.White + "               #\n")
+	fmt.Printf("####################################################")
+	os.Exit(0)
 
-// 	reader := bufio.NewScanner(file)
+}
 
-// }
+func readDirectory(path string) []string {
+	var rfiles []string
 
-// func check(e error) {
-// 	if e != nil {
-// 		panic(e)
-// 	}
-// }
-
-// func Dosyaoku(path string) []byte {
-
-// 	data, err := ioutil.ReadFile(path)
-// 	check(err)
-// 	fmt.Print(string(data))
-
-// 	return data
-// }
-
-func exampleReadDir(path string) string {
-	var xx string
-	entries, err := ioutil.ReadDir(path)
+	files, err := ioutil.ReadDir(path)
 	if err != nil {
 		log.Panicf("failed reading directory: %s", err)
 	}
-	for _, entry := range entries {
+	for _, entry := range files {
 
-		//fileExtension := filepath.Ext(entry.Name())
-		//fmt.Println(fileExtension) // /uzantıları yazdır.
-		xx = entry.Name()
+		if strings.HasSuffix(entry.Name(), ".txt") {
+
+			rfiles = append(rfiles, path+entry.Name())
+		}
+
 	}
-	fmt.Printf("\nNumber of files in current directory: %d\n", len(entries))
-	//fmt.Printf("\nError: %v\n", err)
-	return xx
+	//fileExtension := filepath.Ext(entry.Name())
+	//fmt.Println(fileExtension) // /uzantıları yazdır.
+	fmt.Printf("\nNumber of files in current directory: %d\n", len(rfiles))
+
+	return rfiles
 }
 
 func scanFile(logfile string) []string {
-	abc := []string{}
+	words := []string{}
 	f, err := os.OpenFile(logfile, os.O_RDONLY, os.ModePerm)
 	if err != nil {
 		log.Fatalf("open file error: %v", err)
@@ -103,119 +90,82 @@ func scanFile(logfile string) []string {
 	for sc.Scan() {
 		_ = sc.Text() // GET the line string
 		//fmt.Println(sc.Text())
-		abc = append(abc, sc.Text())
+		if sc.Text() != "" {
+			words = append(words, sc.Text())
+		}
 	}
+
 	if err := sc.Err(); err != nil {
 		log.Fatalf("scan file error: %v", err)
 		return nil
 	}
-	return abc
+	return words
 }
 
-func Request(paths string, url string) {
-
-	defer wg.Done()
-
-	//for _, path := range paths {
-
-	resp, err := http.Get(url + paths)
-
-	//resp, err := http.NewRequest("GET", url+path, nil)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Println(resp.Status)
-	//defer resp.Body.Close()
-	//time.Sleep(time.Millisecond)
-	//fmt.Println(resp.Request.TLS.PeerCertificates[0].Signature)
-
-	// body, err := ioutil.ReadAll(resp.Body)
-	// fmt.Println(string(body))
-
-	// body, err := ioutil.ReadAll(resp.Body)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// fmt.Println(string(body))
-
-	//}
-	//wg.Wait()
-
-}
+//########################################################################
 
 func main() {
+	if len(os.Args) == 1 {
+		welcome()
 
-	// start := time.Now()
+	}
 
-	wordListDir := flag.String("dir", "", "a string")
-	hedefwebsite := flag.String("url", "", "a string")
-
+	multiWLdir := flag.String("dir", "", " > -dir ./wordlists/")
+	worldlist := flag.String("w", "", " > -w ./wordlists/wordlist.txt")
+	hedefwebsite := flag.String("url", "", " > -url http://www.example.com/")
 	// WordListGithub := flag.String("github", "", "a string")
+
 	flag.Parse()
+	url.Parse(*hedefwebsite)
+	var test []string
+	var okunacakdosya []string
+	//var test []string
 
-	okunacakdosya := exampleReadDir(*wordListDir)
+	if *multiWLdir != "" {
+		//test = dizinoku(*multiwordLists)
+		if !strings.HasSuffix(*multiWLdir, "/") {
+			*multiWLdir = *multiWLdir + "/"
+		}
+		okunacakdosya = readDirectory(*multiWLdir)
 
-	abcd := scanFile(okunacakdosya)
+		for _, paths := range okunacakdosya {
 
-	fmt.Printf("Kullanılan Dosya: %s\n", okunacakdosya)
+			test = append(test, scanFile(paths)...)
+			//TODO Bakılacak scanFile
 
-	start := time.Now()
+		}
+
+	} else {
+		//test = []string{*worldlist}
+		test = append(test, scanFile(*worldlist)...)
+	}
+	//okunacakdosya := dizinoku(*multiwordLists)
+
+	fmt.Printf(tcps.Red+"Kullanılan Dosya: %s\n"+tcps.White, okunacakdosya)
 
 	if !strings.HasSuffix(*hedefwebsite, "/") {
 		*hedefwebsite = *hedefwebsite + "/"
 	}
+	// if strings.Contains(*hedefwebsite, "http") {
+	// 	*hedefwebsite = *hedefwebsite + "/"
+	// }
 
-	for _, path := range abcd {
-		wg.Add(1)
-		go Request( /*[]*/ path, *hedefwebsite)
+	fmt.Printf("Bulunan path sayısı : %d\n", len(test))
+
+	//TODO Paths değişkeninin ismini değiştir.
+	start := time.Now()
+	for i := 0; i < len(test); i++ {
+
+		tcps.Wg.Add(1)
+		x := tcps.Httpinit()
+		go tcps.Request(x, string(test[i]), *hedefwebsite)
+		//go tcps.Saldır(string(test[i]), *hedefwebsite)
+
 	}
-	wg.Wait()
-
-	//go Request(abcd, *hedefwebsite)
+	tcps.Wg.Wait()
 
 	duration := time.Since(start)
 
-	fmt.Printf("Executed Time : %d ms", duration.Milliseconds())
-
-	// for _, website := range abcd {
-
-	// 	respons, err := http.Get(website)
-	// 	fmt.Println(respons.Status) // txt
-
-	// 	if err != nil {
-	// 		log.Fatalln(err)
-	// 	}
-
-	// 	defer respons.Body.Close()
-	// }
-
-	// WordListGithub := flag.String("github", "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Discovery/DNS/subdomains-top1million-10-million.txt", "a string")
-	// dirWordlist, err := os.ReadFile(*wordListDir)
-
-	// respons, err := http.Get("https://www.google.com/abcd")
-	// if err != nil {
-	// 	log.Fatalln(err)
-	// }
-
-	// body, err := ioutil.ReadAll(respons.Body)
-	// if err != nil {
-
-	// 	log.Fatalln(err)
-	// }
-
-	// statuscode := respons.Status
-	// if err != nil {
-
-	// 	log.Fatalln(err)
-	// }
-
-	// strbody := string(statuscode)
-	// duration := time.Since(start)
-
-	// log.Printf("Verilen dizin %s\n", *wordListDir)
-
-	// log.Printf("Verilen github Repo %s\n", *WordListGithub)
-	// log.Printf(Red+"Executed %v ms : Status Code = %v\n"+White, duration.Milliseconds(), statuscode)
+	fmt.Printf(tcps.White+"Executed Time :"+tcps.Red+" %d ms"+tcps.White, duration.Milliseconds())
 
 }
