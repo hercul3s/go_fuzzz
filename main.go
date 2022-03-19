@@ -119,6 +119,7 @@ func main() {
 	url.Parse(*hedefwebsite)
 	var test []string
 	var okunacakdosya []string
+
 	//var test []string
 
 	if *multiWLdir != "" {
@@ -146,6 +147,7 @@ func main() {
 	if !strings.HasSuffix(*hedefwebsite, "/") {
 		*hedefwebsite = *hedefwebsite + "/"
 	}
+
 	// if strings.Contains(*hedefwebsite, "http") {
 	// 	*hedefwebsite = *hedefwebsite + "/"
 	// }
@@ -154,11 +156,13 @@ func main() {
 
 	//TODO Paths değişkeninin ismini değiştir.
 	start := time.Now()
+	x := tcps.Httpinit()
+
 	for i := 0; i < len(test); i++ {
 
 		tcps.Wg.Add(1)
-		x := tcps.Httpinit()
-		go tcps.Request(x, string(test[i]), *hedefwebsite)
+
+		go tcps.Request(x, (test[i]), *hedefwebsite)
 		//go tcps.Saldır(string(test[i]), *hedefwebsite)
 
 	}

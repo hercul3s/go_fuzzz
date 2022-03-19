@@ -13,15 +13,52 @@ var Red = "\033[31m"
 var Wg sync.WaitGroup
 
 type Tcpsettings struct {
-	client http.Client
+	client *http.Client
 }
 
 func Httpinit() *Tcpsettings {
 
-	var s Tcpsettings
-	s.client.Timeout = time.Millisecond * 1500
-	return &s
+	//var s Tcpsettings
+	s := &Tcpsettings{
+		client: &http.Client{
+			Timeout: time.Millisecond * 1550,
+			Transport: &http.Transport{
+				MaxIdleConns:        100,
+				MaxIdleConnsPerHost: 100,
+
+				// ExpectContinueTimeout: time.Millisecond * 800,
+			}},
+	}
+	//s.client.Timeout = time.Millisecond * 1500
+	return s
 }
+
+// func Httpinit() *Tcpsettings {
+// 	readTimeout, _ := time.ParseDuration("50ms")
+// 	writeTimeout, _ := time.ParseDuration("500ms")
+// 	//timeout := time.Duration(500 * time.Millisecond)
+// 	maxIdleConnDuration, _ := time.ParseDuration("10000ms")
+
+// 	s := &Tcpsettings{
+// 		client: fasthttp.Client{
+// 			ReadTimeout:                   readTimeout,
+// 			WriteTimeout:                  writeTimeout,
+// 			MaxIdleConnDuration:           maxIdleConnDuration,
+// 			NoDefaultUserAgentHeader:      true,  // Don't send: User-Agent: fasthttp
+// 			DisableHeaderNamesNormalizing: false, // If you set the case on your headers correctly you can enable this
+// 			DisablePathNormalizing:        true,
+// 			MaxResponseBodySize:           1024,
+// 			// increase DNS cache time to an hour instead of default minute
+
+// 			Dial: (&fasthttp.TCPDialer{
+// 				Concurrency:      4096,
+// 				DNSCacheDuration: time.Hour * 1,
+// 			}).Dial,
+// 		},
+// 	}
+// 	return s
+
+// }
 
 func Saldır(paths string, url string) {
 
@@ -31,25 +68,19 @@ func Saldır(paths string, url string) {
 
 func Request(s *Tcpsettings, paths string, url string) {
 
+	resp, err := s.client.Get(url + paths)
+
+	if err != nil {
+		log.Print(err)
+	}
+
+	defer resp.Body.Close()
 	defer Wg.Done()
 
-	// eskisi
-	//#############################################
-	// client := &http.Client{
-	// 	Timeout: time.Millisecond * 1500,
-	// }
-	resp, err := s.client.Get(url + paths)
-	// resp, err := client.Get(url + paths)
+	if resp.StatusCode == 200 {
+		// //resp, err := http.NewRequest("GET", url+path, nil)
+		// defer resp.Body.Close()
 
-	//resp, err := http.NewRequest("GET", url+path, nil)
-	if err != nil {
-		log.Println(err)
-
+		fmt.Printf(White+"Path :"+Red+"%s  "+White+"   Status Code :"+Red+" %s\n", paths, resp.Status)
 	}
-	defer resp.Body.Close()
-
-	//resp.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36")
-
-	fmt.Printf(White+"Path :"+Red+"%s  "+White+"   Status Code :"+Red+" %s\n", paths, resp.Status)
-
 }
