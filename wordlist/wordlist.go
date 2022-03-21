@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"time"
 
 	"test.com/fuzz/file"
 	tcps "test.com/fuzz/tcp"
@@ -55,10 +56,14 @@ func (*Wordlist) WordListinit() {
 		fmt.Printf(tcps.Red+"Kullanılan Dosya: %s\n"+tcps.White, wL2.FilePaths)
 	} else if *WordlistGithub != "" {
 
-		keys := tcps.SimpleRequest(*WordlistGithub)
-		wL2.Data = append(wL2.Data, keys...)
+		//keys := tcps.SimpleRequest(*WordlistGithub)
 		//wL2.Data = append(wL2.Data, Fileopr.ReadFiles(*WordlistGithub)...)
+		start := time.Now()
 
+		fmt.Println()
+		wL2.Data = append(wL2.Data, tcps.SimpleRequest(*WordlistGithub)...)
+		duration := time.Since(start)
+		fmt.Println(duration.Milliseconds())
 		fmt.Fprintf(os.Stderr, tcps.Red+"Github Wordlist: %s\n"+tcps.White, *WordlistGithub)
 
 	} else {
