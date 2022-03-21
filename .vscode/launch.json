@@ -1,0 +1,19 @@
+{
+    // Olası öznitelikler hakkında bilgi edinmek için IntelliSense kullanın.
+    // Mevcut özniteliklerin açıklamalarını görüntülemek için üzerine gelin.
+    // Daha fazla bilgi için şu adresi ziyaret edin: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Launch Package",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${fileDirname}",
+            //"args": ["-w", "C:\\Users\\Altin\\Desktop\\ONEMLI.txt", "-url", "https://www.github.com"]
+            //"args": ["-dir", "C:\\Users\\Altin\\Desktop\\go_fuzzz\\", "-url", "https://github.com"],
+            "args": ["-github", "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Discovery/Web-Content/Logins.fuzz.txt", "-url", "https://github.com"],
+
+        }
+    ]
+}
