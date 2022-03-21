@@ -77,10 +77,10 @@ func Request(s *Tcpsettings, paths string, url string) {
 	defer resp.Body.Close()
 	defer Wg.Done()
 
-	//if resp.StatusCode == 200 {
-	// //resp, err := http.NewRequest("GET", url+path, nil)
-	// defer resp.Body.Close()
+	if resp.StatusCode == 200 {
+		// //resp, err := http.NewRequest("GET", url+path, nil)
+		// defer resp.Body.Close()
 
-	fmt.Printf(White+"Path :"+Red+"%s  "+White+"   Status Code :"+Red+" %s\n", paths, resp.Status)
-	//}
+		fmt.Printf(White+"Path :"+Red+"%s  "+White+"   Status Code :"+Red+" %s\n", paths, resp.Status)
+	}
 }
