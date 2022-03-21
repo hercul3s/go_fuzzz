@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/url"
 	"os"
@@ -13,7 +12,10 @@ import (
 	"time"
 
 	tcps "test.com/fuzz/tcp"
+	wordlist "test.com/fuzz/wordlist"
 )
+
+var wL2 *wordlist.Wordlist
 
 //var testMutex sync.Mutex
 
@@ -35,12 +37,6 @@ import (
 
 // func ParseArguments()
 
-type Wordlist struct {
-	data      [][]byte
-	position  int
-	fuzzInurl string
-}
-
 func welcome() {
 
 	fmt.Printf("#############" + tcps.Red + " Welcome to the Fuzzer" + tcps.White + " #############\n")
@@ -50,31 +46,10 @@ func welcome() {
 	fmt.Printf("#" + tcps.Red + " -url : Target URL       " + tcps.White + "                      #\n")
 	//fmt.Printf("#" + Red + " -github : Wordlist from Github  " + White + "              #\n")
 	fmt.Printf("#" + tcps.Red + " -help : Help                   " + tcps.White + "               #\n")
+
 	fmt.Printf("####################################################")
 	os.Exit(0)
 
-}
-
-func readDirectory(path string) []string {
-	var rfiles []string
-
-	files, err := ioutil.ReadDir(path)
-	if err != nil {
-		log.Panicf("failed reading directory: %s", err)
-	}
-	for _, entry := range files {
-
-		if strings.HasSuffix(entry.Name(), ".txt") {
-
-			rfiles = append(rfiles, path+entry.Name())
-		}
-
-	}
-	//fileExtension := filepath.Ext(entry.Name())
-	//fmt.Println(fileExtension) // /uzantıları yazdır.
-	fmt.Printf("\nNumber of files in current directory: %d\n", len(rfiles))
-
-	return rfiles
 }
 
 func scanFile(logfile string) []string {
@@ -117,32 +92,27 @@ func main() {
 
 	flag.Parse()
 	url.Parse(*hedefwebsite)
-	var test []string
-	var okunacakdosya []string
-
-	//var test []string
 
 	if *multiWLdir != "" {
-		//test = dizinoku(*multiwordLists)
-		if !strings.HasSuffix(*multiWLdir, "/") {
-			*multiWLdir = *multiWLdir + "/"
-		}
-		okunacakdosya = readDirectory(*multiWLdir)
+		// if !strings.HasSuffix(*multiWLdir, "/") {
+		// 	*multiWLdir = *multiWLdir + "/"
+		// }
+		wL2 = wordlist.NewWordlist(*worldlist)
+		okunacakdosya := wL2.ReadDirectory(*multiWLdir)
 
 		for _, paths := range okunacakdosya {
 
-			test = append(test, scanFile(paths)...)
+			wL2.Data = append(wL2.Data, scanFile(paths)...)
+
 			//TODO Bakılacak scanFile
 
 		}
-
+		fmt.Printf(tcps.Red+"Kullanılan Dosya: %s\n"+tcps.White, okunacakdosya)
 	} else {
-		//test = []string{*worldlist}
-		test = append(test, scanFile(*worldlist)...)
-	}
-	//okunacakdosya := dizinoku(*multiwordLists)
 
-	fmt.Printf(tcps.Red+"Kullanılan Dosya: %s\n"+tcps.White, okunacakdosya)
+		wL2 = wordlist.NewWordlist(*worldlist)
+		wL2.Data = append(wL2.Data, scanFile(*worldlist)...)
+	}
 
 	if !strings.HasSuffix(*hedefwebsite, "/") {
 		*hedefwebsite = *hedefwebsite + "/"
@@ -152,17 +122,17 @@ func main() {
 	// 	*hedefwebsite = *hedefwebsite + "/"
 	// }
 
-	fmt.Printf("Bulunan path sayısı : %d\n", len(test))
+	fmt.Printf("Bulunan path sayısı : %d\n", len(wL2.Data))
 
 	//TODO Paths değişkeninin ismini değiştir.
 	start := time.Now()
-	x := tcps.Httpinit()
+	http := tcps.Httpinit()
 
-	for i := 0; i < len(test); i++ {
+	for i := 0; i < len(wL2.Data); i++ {
 
 		tcps.Wg.Add(1)
 
-		go tcps.Request(x, (test[i]), *hedefwebsite)
+		go tcps.Request(http, (wL2.Data[i]), *hedefwebsite)
 		//go tcps.Saldır(string(test[i]), *hedefwebsite)
 
 	}

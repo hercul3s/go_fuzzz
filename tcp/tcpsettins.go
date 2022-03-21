@@ -21,7 +21,7 @@ func Httpinit() *Tcpsettings {
 	//var s Tcpsettings
 	s := &Tcpsettings{
 		client: &http.Client{
-			Timeout: time.Millisecond * 1550,
+			Timeout: time.Millisecond * 3000,
 			Transport: &http.Transport{
 				MaxIdleConns:        100,
 				MaxIdleConnsPerHost: 100,
@@ -60,11 +60,11 @@ func Httpinit() *Tcpsettings {
 
 // }
 
-func Saldır(paths string, url string) {
+// func Saldır(paths string, url string) {
 
-	go Request(Httpinit(), paths, url)
+// 	go Request(Httpinit(), paths, url)
 
-}
+// }
 
 func Request(s *Tcpsettings, paths string, url string) {
 
@@ -77,10 +77,10 @@ func Request(s *Tcpsettings, paths string, url string) {
 	defer resp.Body.Close()
 	defer Wg.Done()
 
-	if resp.StatusCode == 200 {
-		// //resp, err := http.NewRequest("GET", url+path, nil)
-		// defer resp.Body.Close()
+	//if resp.StatusCode == 200 {
+	// //resp, err := http.NewRequest("GET", url+path, nil)
+	// defer resp.Body.Close()
 
-		fmt.Printf(White+"Path :"+Red+"%s  "+White+"   Status Code :"+Red+" %s\n", paths, resp.Status)
-	}
+	fmt.Printf(White+"Path :"+Red+"%s  "+White+"   Status Code :"+Red+" %s\n", paths, resp.Status)
+	//}
 }
