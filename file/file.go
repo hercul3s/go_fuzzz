@@ -17,7 +17,7 @@ type File struct {
 	Filenames []string
 }
 
-func (w *File) ReadDirectory(path string) []string {
+func (f *File) ReadDirectory(path string) []string {
 
 	files, err := ioutil.ReadDir(path)
 	if err != nil {
@@ -27,19 +27,19 @@ func (w *File) ReadDirectory(path string) []string {
 
 		if strings.HasSuffix(entry.Name(), ".txt") {
 
-			w.Filenames = append(w.Filenames, path+entry.Name())
+			f.Filenames = append(f.Filenames, path+entry.Name())
 		}
 
 	}
 	//fileExtension := filepath.Ext(entry.Name())
 	//fmt.Println(fileExtension) // /uzantıları yazdır.
-	fmt.Printf("\nNumber of files in current directory: %d\n", len(w.Filenames))
+	fmt.Printf("\nNumber of files in current directory: %d\n", len(f.Filenames))
 
-	return w.Filenames
+	return f.Filenames
 }
 
 func (w *File) ReadFiles(logfile string) []string {
-	words := []string{}
+	//words := []string{}
 	f, err := os.OpenFile(logfile, os.O_RDONLY, os.ModePerm)
 	if err != nil {
 		log.Fatalf("open file error: %v", err)
@@ -52,7 +52,7 @@ func (w *File) ReadFiles(logfile string) []string {
 		_ = sc.Text() // GET the line string
 		//fmt.Println(sc.Text())
 		if sc.Text() != "" {
-			words = append(words, sc.Text())
+			w.Data = append(w.Data, sc.Text())
 		}
 	}
 
@@ -60,5 +60,5 @@ func (w *File) ReadFiles(logfile string) []string {
 		log.Fatalf("scan file error: %v", err)
 		return nil
 	}
-	return words
+	return w.Data
 }

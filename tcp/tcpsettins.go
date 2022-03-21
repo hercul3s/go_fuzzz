@@ -1,7 +1,10 @@
 package tcps
 
 import (
+	"bufio"
+	"bytes"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"sync"
@@ -83,4 +86,30 @@ func Request(s *Tcpsettings, paths string, url string) {
 
 		fmt.Printf(White+"Path :"+Red+"%s  "+White+"   Status Code :"+Red+" %s\n", paths, resp.Status)
 	}
+}
+
+func SimpleRequest(url string) []string {
+	var bodyString []string
+	resp, err := http.Get(url)
+
+	if err != nil {
+		log.Print(err)
+	}
+	//var recvbytes []string
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	scanner := bufio.NewScanner(bytes.NewReader(bodyBytes))
+	for scanner.Scan() {
+		bodyString = append(bodyString, scanner.Text())
+
+	}
+
+	//RecvBody :=resp.Write(recvbytes)
+	//fmt.Println(bodyString)
+
+	defer resp.Body.Close()
+	return bodyString
 }
